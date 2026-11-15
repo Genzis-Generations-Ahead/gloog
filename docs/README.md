@@ -1,70 +1,163 @@
-# Gloog Bring-up Guide (Pi 3B+ CSI + Reference Band)
+# Gloog bring-up guide
 
-Goal for day one: get raw CSI packets flowing from the Pi to a laptop, and a heart-rate stream from the band. Nothing else yet.
+From blank hardware to live CSI on a laptop. This is the exact setup we run.
 
-> Always follow the official nexmon_csi README (github.com/seemoo-lab/nexmon_csi) for exact kernel versions and build commands. It changes over time. This guide is the order of work, not a replacement for it.
+**You need:** Raspberry Pi 3B+, 5V 2.5A micro-USB adapter, microSD card or USB pen drive (8 GB+), Tenda N301 router, LAN cable, laptop with an Ethernet port, Seeed XIAO ESP32-C3 + its antenna, MAX30102 sensor.
 
-## Part A: Pi 3B+ as CSI collector (owner: Tanush)
+```
+ Tenda router ))) Wi-Fi )))  Pi 3B+ ──LAN cable──  Laptop (receiver.py)
+      ▲                                             ▲
+      └──── Wi-Fi ──── Reference band (XIAO) ───────┘
+```
 
-### A1. Flash
-- Use Raspberry Pi Imager. Pick the Raspberry Pi OS image whose kernel matches the nexmon_csi README table for the 3B+ (bcm43455c0).
-- Enable SSH and set Wi-Fi/hostname in Imager's advanced options.
-- **Do NOT run `apt full-upgrade` or update the kernel afterwards.** A kernel bump breaks the Nexmon patch.
+---
 
-### A2. Build
-- Clone nexmon, then nexmon_csi inside it, as the README says.
-- Install the kernel headers and build dependencies listed in the README.
-- Build and install the patched firmware. This is the slowest step, so let it run.
-- Reboot and confirm wlan0 still comes up.
+## A. Router (once)
 
-### A3. Router
-- Set the router to **5GHz, channel 36, 80MHz**. (2.4GHz also works, but 5GHz gives wider bandwidth and cleaner spectrum.)
-- Note the router's MAC address.
+1. Power the Tenda, join its Wi-Fi from your phone, open **http://192.168.0.1**.
+2. Quick setup: connection type **Dynamic IP**, Wi-Fi name **`gloog`**, set a password.
+3. Wireless settings: **Channel 6**, **Channel width 20 MHz**. Not "auto". Save, then check it shows *Current Channel: 6*.
+4. Get the router's MAC (BSSID). On a Windows laptop joined to `gloog`:
+   ```
+   netsh wlan show interfaces
+   ```
+   Copy the **AP BSSID** line. Ours is `e8:65:d4:f6:0f:28`.
 
-### A4. Configure capture
-- Generate parameters with `makecsiparams`. Example: channel 36, 80MHz, core 1, one spatial stream, filtered to your router's MAC:
-  `makecsiparams -c 36/80 -C 1 -N 1 -m <ROUTER_MAC>`
-- Load the output string into the chip with `nexutil` (exact command is in the README; use the string `makecsiparams` printed).
-- Create the monitor interface and bring it up (README has the `iw` / `ip link` commands).
+The router needs power only. It does not need internet. Carry it with you.
 
-### A5. Capture
-- `tcpdump -i wlan0 dst port 5500 -vv -w capture.pcap`
-- CSI arrives as UDP on port 5500. If the pcap has packets, the sensing side works.
-- The router must be sending frames. If counts are low or bursty, generate steady traffic (ping the router from the Pi, or run a phone/laptop against it).
+## B. Raspberry Pi (once)
 
-### A6. Sanity test (do this before any phantom or ML work)
-1. Capture 60s in an **empty room**.
-2. Capture 60s with a person **walking** around.
-3. Capture 60s with a person **lying still, breathing normally**.
-4. Parse the pcaps on the laptop (nexmon_csi ships parsing examples) and plot amplitude per subcarrier over time.
-- Pass: the walking capture is clearly different from the empty one. Breathing may show as a slow ripple in the still capture.
+### B1. Flash
+- Image (must be this one, kernel 5.10.92):
+  `https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_armhf-2022-01-28/2022-01-28-raspios-bullseye-armhf-lite.zip`
+- Raspberry Pi Imager → Device **Raspberry Pi 3** → OS **Use custom** (the .zip) → your SD card or pen drive.
+- Edit settings: username **`pi`**, a password, **Wi-Fi unchecked**, Services → **enable SSH**.
+- A USB pen drive works instead of an SD card: plug it into any Pi USB port.
 
-## Part B: Reference band (owner: pick one teammate)
+> [!WARNING]
+> **Never run `apt upgrade`** on this Pi. A new kernel breaks Nexmon. `apt install <package>` is fine.
 
-- XIAO ESP32-C3 + MAX30102 over I2C (VCC, GND, SDA, SCL).
-- Firmware: read the PPG sensor and stream heart rate over BLE.
-- Test: compare the band's reading against a phone/finger check.
-- Log with timestamps. Clock sync between the band log and the CSI capture is what makes the labelled dataset usable later.
-- Wrist PPG is noisy. Plan some artifact-rejection filtering on this side too.
+### B2. Give the Pi internet (only for the install)
+Easiest: share the laptop's Wi-Fi over the LAN cable.
+1. Laptop on home Wi-Fi. LAN cable Pi ↔ laptop.
+2. `Win+R` → `ncpa.cpl` → right-click **Wi-Fi** → Properties → **Sharing** → tick *Allow other network users…* → choose **Ethernet** → OK.
+3. Power the Pi, wait ~2 min (first boot is slow), then:
+   ```
+   ssh pi@raspberrypi.local
+   ```
+   Not found? Run `arp -a` and use the `192.168.137.x` address.
 
-## Part C: What is NOT done by flashing the Pi
+(Alternative: plug the Pi straight into a router that has internet.)
 
-The Pi only collects raw CSI. Still to build:
-- Signal processing: denoising, then movement/presence, breathing rate, heart rate.
-- Bed-monitoring logic: "no movement for X minutes" raises an alert.
-- Backend and dashboard/app.
-- Calibration step per room/router (empty-room baseline).
+### B3. Install Nexmon CSI (prebuilt, ~3 min)
+On the Pi:
+```bash
+uname -r          # must print 5.10.92-v7+
+ping -c 3 google.com
+curl -fsSL https://raw.githubusercontent.com/nexmonster/nexmon_csi_bin/main/install.sh | sudo bash
+sudo reboot
+```
+After this the Pi's Wi-Fi is capture-only. You always reach it over the LAN cable.
 
-Expected difficulty: presence/movement first, breathing second, heart rate last.
+### B4. Quick check
+Reconnect with `ssh pi@raspberrypi.local`, then:
+```bash
+P=$(mcp -C 1 -N 1 -c 6/20 -m e8:65:d4:f6:0f:28)
+sudo ip link set wlan0 up
+sudo nexutil -Iwlan0 -s500 -b -l34 -v$P
+sudo iw dev wlan0 interface add mon0 type monitor
+sudo ip link set mon0 up
+sudo tcpdump -i wlan0 dst port 5500 -c 20
+```
+Make the router send data (a phone on `gloog` refreshing 192.168.0.1). You want lines like `10.10.10.10.5500 > 255.255.255.255.5500: UDP, length 274`. That is CSI.
+
+### B5. Get the code
+```bash
+sudo apt install -y git
+git clone https://github.com/Genzis-Generations-Ahead/gloog ~/gloog
+```
+Update later with `cd ~/gloog && git pull`.
+
+## C. Run it (every session)
+
+**Pi** (settings live in `firmware/pi/gloog.conf`):
+```bash
+cd ~/gloog/firmware/pi && sudo ./start_csi.sh
+```
+It prints `[gloog] NN CSI pkt/s` once the router is sending data. CSI is broadcast down the LAN cable, so any laptop on the cable receives it.
+
+**Laptop:**
+```bash
+cd signal-processing
+pip install numpy scipy
+python receiver.py
+```
+Allow Python through Windows Firewall, **Private and Public**. Put the laptop's Wi-Fi on **`gloog`** so the band can reach it.
+
+**Traffic:** CSI only comes from data frames, so the router must be busy. Flash `firmware/tests/traffic_gen` onto a XIAO, or just run the band (its stream counts).
+
+You'll see lines like:
+```
+CSI 48pkt/s STILL motion=0.0013 BR=14.6/min HR=72bpm | BAND HR=71bpm
+```
+Logs land in `signal-processing/logs/` as CSV.
+
+## D. Reference band
+
+**Wiring** (hold the XIAO with USB-C pointing up, component side facing you):
+```
+          [USB-C]
+   D0  ●           ● 5V
+   D1  ●           ● GND   ← MAX30102 GND
+   D2  ●           ● 3V3   ← MAX30102 VIN
+   D3  ●           ● D10
+   D4  ●  ← SDA    ● D9
+   D5  ●  ← SCL    ● D8
+   D6  ●           ● D7
+```
+- **Click the antenna onto the XIAO.** Without it RSSI sits around -90 dBm; with it, around -20 to -50.
+
+**Arduino IDE:**
+- Boards Manager URL: `https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json` → install **esp32**.
+- Library: **SparkFun MAX3010x**.
+- Board **XIAO_ESP32C3**, Tools → **USB CDC On Boot: Enabled**.
+- Upload won't start? Hold **B**, tap **R**, release **B**, upload again.
+
+**Test in order:**
+1. `firmware/tests/wifi_test`: connects to `gloog`, prints RSSI.
+2. `firmware/tests/i2c_scanner`: must print `Found 0x57`.
+3. `firmware/band`: the real thing.
+
+**Band Wi-Fi setup (no code edits):**
+1. First power-on opens hotspot **`Gloog-Band-Setup`**. Join it on your phone; the setup page pops up (or open http://192.168.4.1).
+2. Pick `gloog` (2.4 GHz only), enter the password, Save. It remembers it.
+3. With `receiver.py` running, the band finds the laptop on its own and starts streaming.
+4. Change network: hold **B** for 3 s while it's running.
+
+Serial Monitor (115200) shows `wifi=ok laptop=192.168.0.x sensor=ok sent=…`.
+
+## E. Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| SSH keeps dropping / Pi restarts | Weak power. Run `vcgencmd get_throttled`; anything but `0x0` means use a proper 5V 2.5A adapter |
+| `Could not resolve raspberrypi.local` | Pi still booting, wait 2 min. Or `arp -a` → `ssh pi@192.168.137.x` |
+| Host key warning | `ssh-keygen -R raspberrypi.local` |
+| Pi shows no `CSI pkt/s` | Router idle: run traffic. Check channel and BSSID in `gloog.conf` |
+| Receiver says `CSI: no data` | Pi script not running, or firewall blocked Python (allow Private + Public) |
+| `BAND: no data` | Laptop Wi-Fi not on `gloog`, or band not set up yet |
+| XIAO RSSI around -90 | Antenna not clicked on |
+| No COM port for the XIAO | Charge-only USB cable, or use the B + R boot trick |
+| `scp` prints a usage message | Missing the source folder: `scp -r pi pi@raspberrypi.local:~/gloog` |
+| Commands error in PowerShell | You're on Windows, not the Pi. The Pi prompt is green `pi@raspberrypi` |
 
 ## Checklist
 
-- [ ] Pi flashed with the pinned image, kernel NOT upgraded
-- [ ] Nexmon + nexmon_csi built, wlan0 healthy after reboot
-- [ ] Router on 5GHz ch 36/80, MAC noted
-- [ ] `makecsiparams` + `nexutil` loaded
-- [ ] pcap shows UDP port 5500 packets
-- [ ] Empty vs walking vs still captures recorded
-- [ ] Band streams HR over BLE
-- [ ] Captures and notes pushed to the gloog repo (docs/ and signal-processing/)
-
+- [x] Router on fixed channel 6 / 20 MHz, BSSID noted
+- [x] Pi flashed (2022-01-28 bullseye lite, kernel 5.10.92), SSH working
+- [x] Nexmon CSI installed, tcpdump shows UDP 5500 packets
+- [ ] `start_csi.sh` → `receiver.py` shows live `CSI NNpkt/s`
+- [ ] XIAO soldered, I2C scanner finds `0x57`
+- [ ] Band set up from phone, `BAND HR` shows in receiver
+- [ ] Empty room / walking / lying still captures recorded
+- [ ] Breathing phantom runs at set bpm, receiver BR matches

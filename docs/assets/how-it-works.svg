@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" width="1200" height="560" role="img" aria-label="How Gloog works: router, person, Raspberry Pi CSI capture, Gloog engine, dashboard, with a reference band for ground truth">
+  <defs>
+    <pattern id="g" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M28 0H0V28" fill="none" stroke="#111" stroke-opacity=".06"/>
+    </pattern>
+    <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#111"/>
+    </marker>
+    <style>
+      .h{font-family:'Arial Black','Helvetica Neue',Arial,sans-serif;font-weight:900}
+      .t{font-family:'Helvetica Neue',Arial,sans-serif}
+      .m{font-family:'SFMono-Regular',Consolas,'Courier New',monospace}
+      .flow{stroke-dasharray:10 8;animation:f 1.2s linear infinite}
+      @keyframes f{to{stroke-dashoffset:-36}}
+    </style>
+  </defs>
+  <rect width="1200" height="560" fill="#FFF4E4"/>
+  <rect width="1200" height="560" fill="url(#g)"/>
+
+  <text x="40" y="62" class="h" font-size="34" fill="#111">HOW GLOOG WORKS</text>
+  <rect x="40" y="76" width="250" height="8" rx="4" fill="#C6FF3D" stroke="#111" stroke-width="2"/>
+
+  <!-- node template: shadow + card -->
+  <!-- 1 router -->
+  <g transform="translate(40 130)">
+    <rect x="8" y="8" width="200" height="220" rx="16" fill="#111"/>
+    <rect width="200" height="220" rx="16" fill="#7CF5FF" stroke="#111" stroke-width="4"/>
+    <circle cx="30" cy="30" r="17" fill="#111"/><text x="30" y="37" class="h" font-size="18" fill="#FFF" text-anchor="middle">1</text>
+    <g transform="translate(70 66)" fill="none" stroke="#111" stroke-width="4" stroke-linecap="round">
+      <rect x="0" y="34" width="60" height="26" rx="6" fill="#FFFDF8"/>
+      <path d="M12 34V12M48 34V12"/>
+      <path d="M8 4a30 30 0 0 1 44 0" stroke-width="3"/>
+    </g>
+    <text x="100" y="168" class="h" font-size="20" fill="#111" text-anchor="middle">ROUTER</text>
+    <text x="100" y="192" class="t" font-size="15" fill="#111" text-anchor="middle">sends normal Wi-Fi</text>
+    <text x="100" y="210" class="t" font-size="15" fill="#111" text-anchor="middle">through the room</text>
+  </g>
+
+  <!-- 2 person -->
+  <g transform="translate(276 130)">
+    <rect x="8" y="8" width="200" height="220" rx="16" fill="#111"/>
+    <rect width="200" height="220" rx="16" fill="#FF9BDB" stroke="#111" stroke-width="4"/>
+    <circle cx="30" cy="30" r="17" fill="#111"/><text x="30" y="37" class="h" font-size="18" fill="#FFF" text-anchor="middle">2</text>
+    <g transform="translate(36 84)">
+      <rect x="0" y="30" width="128" height="14" rx="5" fill="#FFFDF8" stroke="#111" stroke-width="3"/>
+      <circle cx="24" cy="20" r="10" fill="#FFD9B8" stroke="#111" stroke-width="3"/>
+      <rect x="36" y="12" width="86" height="18" rx="9" fill="#B9A6FF" stroke="#111" stroke-width="3"/>
+      <path d="M60 2 q8 -10 16 0 t16 0" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <text x="100" y="168" class="h" font-size="20" fill="#111" text-anchor="middle">PATIENT</text>
+    <text x="100" y="192" class="t" font-size="15" fill="#111" text-anchor="middle">breathing &amp; heartbeat</text>
+    <text x="100" y="210" class="t" font-size="15" fill="#111" text-anchor="middle">bend the signal</text>
+  </g>
+
+  <!-- 3 pi -->
+  <g transform="translate(512 130)">
+    <rect x="8" y="8" width="200" height="220" rx="16" fill="#111"/>
+    <rect width="200" height="220" rx="16" fill="#C6FF3D" stroke="#111" stroke-width="4"/>
+    <circle cx="30" cy="30" r="17" fill="#111"/><text x="30" y="37" class="h" font-size="18" fill="#FFF" text-anchor="middle">3</text>
+    <g transform="translate(58 62)">
+      <rect width="84" height="62" rx="6" fill="#2E8B57" stroke="#111" stroke-width="3"/>
+      <rect x="28" y="18" width="28" height="26" rx="3" fill="#CFCFCF" stroke="#111" stroke-width="3"/>
+      <path d="M6 6h72" stroke="#111" stroke-width="4" stroke-dasharray="3 3"/>
+    </g>
+    <text x="100" y="168" class="h" font-size="20" fill="#111" text-anchor="middle">PI 3B+ · NEXMON</text>
+    <text x="100" y="192" class="t" font-size="15" fill="#111" text-anchor="middle">reads CSI: 64 subcarriers</text>
+    <text x="100" y="210" class="t" font-size="15" fill="#111" text-anchor="middle">per packet</text>
+  </g>
+
+  <!-- 4 engine -->
+  <g transform="translate(748 130)">
+    <rect x="8" y="8" width="200" height="220" rx="16" fill="#111"/>
+    <rect width="200" height="220" rx="16" fill="#B9A6FF" stroke="#111" stroke-width="4"/>
+    <circle cx="30" cy="30" r="17" fill="#111"/><text x="30" y="37" class="h" font-size="18" fill="#FFF" text-anchor="middle">4</text>
+    <g transform="translate(40 70)" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M0 30 l14 -14 l12 22 l14 -30 l12 34 l14 -20 l14 8 l14 -6 l14 4" stroke-opacity=".35"/>
+      <path d="M0 52 q15 -18 30 0 t30 0 t30 0 t30 0" stroke-width="4"/>
+    </g>
+    <text x="100" y="168" class="h" font-size="20" fill="#111" text-anchor="middle">GLOOG ENGINE</text>
+    <text x="100" y="192" class="t" font-size="15" fill="#111" text-anchor="middle">filters noise, extracts</text>
+    <text x="100" y="210" class="t" font-size="15" fill="#111" text-anchor="middle">motion · breath · pulse</text>
+  </g>
+
+  <!-- 5 dashboard -->
+  <g transform="translate(984 130)">
+    <rect x="8" y="8" width="176" height="220" rx="16" fill="#111"/>
+    <rect width="176" height="220" rx="16" fill="#FFD166" stroke="#111" stroke-width="4"/>
+    <circle cx="30" cy="30" r="17" fill="#111"/><text x="30" y="37" class="h" font-size="18" fill="#FFF" text-anchor="middle">5</text>
+    <g transform="translate(48 58)">
+      <rect width="80" height="72" rx="10" fill="#FFFDF8" stroke="#111" stroke-width="3"/>
+      <rect x="10" y="12" width="28" height="22" rx="4" fill="#C6FF3D" stroke="#111" stroke-width="2"/>
+      <rect x="44" y="12" width="26" height="22" rx="4" fill="#FF9BDB" stroke="#111" stroke-width="2"/>
+      <rect x="10" y="40" width="60" height="20" rx="4" fill="#7CF5FF" stroke="#111" stroke-width="2"/>
+    </g>
+    <text x="88" y="168" class="h" font-size="20" fill="#111" text-anchor="middle">DASHBOARD</text>
+    <text x="88" y="192" class="t" font-size="15" fill="#111" text-anchor="middle">vitals + alerts when</text>
+    <text x="88" y="210" class="t" font-size="15" fill="#111" text-anchor="middle">a patient stops moving</text>
+  </g>
+
+  <!-- arrows -->
+  <g stroke="#111" stroke-width="4" fill="none" marker-end="url(#ar)">
+    <path class="flow" d="M248 240 H268"/>
+    <path class="flow" d="M484 240 H504"/>
+    <path class="flow" d="M720 240 H740"/>
+    <path class="flow" d="M956 240 H976"/>
+  </g>
+  <text x="494" y="118" class="m" font-size="13" fill="#111" text-anchor="middle">over the air</text>
+  <text x="730" y="118" class="m" font-size="13" fill="#111" text-anchor="middle">ethernet · UDP 5501</text>
+
+  <!-- reference band -->
+  <g transform="translate(512 400)">
+    <rect x="8" y="8" width="436" height="110" rx="16" fill="#111"/>
+    <rect width="436" height="110" rx="16" fill="#FFFDF8" stroke="#111" stroke-width="4"/>
+    <rect x="0" y="0" width="16" height="110" rx="8" fill="#FF9BDB" stroke="#111" stroke-width="4"/>
+    <text x="36" y="38" class="h" font-size="18" fill="#111">REFERENCE BAND</text>
+    <text x="36" y="64" class="t" font-size="15" fill="#333">XIAO ESP32-C3 + MAX30102 PPG · ground-truth pulse</text>
+    <text x="36" y="88" class="t" font-size="15" fill="#333">to train &amp; validate the contactless readings</text>
+  </g>
+  <path class="flow" d="M848 400 V352" stroke="#111" stroke-width="4" fill="none" marker-end="url(#ar)"/>
+  <text x="872" y="384" class="m" font-size="13" fill="#111">Wi-Fi · UDP 5600</text>
+
+  <text x="40" y="540" class="m" font-size="14" fill="#555">Raspberry Pi 3B+ · Nexmon CSI · Tenda N301 (2.4 GHz, ch 6, 20 MHz) · Python signal pipeline</text>
+</svg>

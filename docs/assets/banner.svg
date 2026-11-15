@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 440" width="1200" height="440" role="img" aria-label="Gloog: contactless vital-sign monitoring with Wi-Fi">
+  <defs>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M28 0H0V28" fill="none" stroke="#111" stroke-opacity=".07" stroke-width="1"/>
+    </pattern>
+    <style>
+      .h{font-family:'Arial Black','Helvetica Neue',Arial,sans-serif;font-weight:900}
+      .t{font-family:'Helvetica Neue',Arial,sans-serif}
+      .m{font-family:'SFMono-Regular',Consolas,'Courier New',monospace}
+      .wave{stroke-dasharray:14 10;animation:flow 1.6s linear infinite}
+      .pulse{stroke-dasharray:900;stroke-dashoffset:900;animation:draw 3.2s ease-in-out infinite}
+      .arc{animation:ping 2.4s ease-out infinite;transform-origin:944px 262px}
+      .arc2{animation-delay:.8s}.arc3{animation-delay:1.6s}
+      @keyframes flow{to{stroke-dashoffset:-48}}
+      @keyframes draw{0%{stroke-dashoffset:900}55%{stroke-dashoffset:0}100%{stroke-dashoffset:-900}}
+      @keyframes ping{0%{opacity:0;transform:scale(.6)}25%{opacity:1}100%{opacity:0;transform:scale(1.25)}}
+    </style>
+  </defs>
+
+  <!-- background -->
+  <rect width="1200" height="440" fill="#FFF4E4"/>
+  <rect width="1200" height="440" fill="url(#grid)"/>
+
+  <!-- main card (neo-brutalist offset shadow) -->
+  <rect x="44" y="44" width="1116" height="356" rx="22" fill="#111"/>
+  <rect x="32" y="32" width="1116" height="356" rx="22" fill="#FFFDF8" stroke="#111" stroke-width="4"/>
+
+  <!-- left stripe -->
+  <rect x="32" y="32" width="22" height="356" rx="11" fill="#C6FF3D" stroke="#111" stroke-width="4"/>
+
+  <!-- wordmark -->
+  <rect x="92" y="88" width="398" height="118" rx="10" fill="#C6FF3D" stroke="#111" stroke-width="4" transform="rotate(-2 290 147)"/>
+  <text x="104" y="190" class="h" font-size="132" fill="#111" letter-spacing="-4">GLOOG</text>
+
+  <text x="96" y="252" class="h" font-size="27" fill="#111">Your Wi-Fi, now a vital-signs monitor.</text>
+  <text x="96" y="290" class="t" font-size="20" fill="#333">Contactless presence, breathing &amp; heart-rate</text>
+  <text x="96" y="316" class="t" font-size="20" fill="#333">sensing from Wi-Fi. No camera, nothing to wear.</text>
+
+  <!-- chips -->
+  <g class="m" font-size="15" font-weight="700">
+    <g transform="translate(96 338)">
+      <rect width="128" height="32" rx="16" fill="#B9A6FF" stroke="#111" stroke-width="3"/>
+      <text x="64" y="21" text-anchor="middle" fill="#111">WI-FI CSI</text>
+    </g>
+    <g transform="translate(236 338)">
+      <rect width="158" height="32" rx="16" fill="#FF9BDB" stroke="#111" stroke-width="3"/>
+      <text x="79" y="21" text-anchor="middle" fill="#111">PRIVACY-FIRST</text>
+    </g>
+    <g transform="translate(406 338)">
+      <rect width="150" height="32" rx="16" fill="#7CF5FF" stroke="#111" stroke-width="3"/>
+      <text x="75" y="21" text-anchor="middle" fill="#111">BED MONITORING</text>
+    </g>
+  </g>
+
+  <!-- right panel: router + bed + signal -->
+  <g>
+    <rect x="690" y="70" width="430" height="280" rx="18" fill="#111"/>
+    <rect x="680" y="60" width="430" height="280" rx="18" fill="#1A1A1A" stroke="#111" stroke-width="4"/>
+    <path d="M680 120H1110" stroke="#2c2c2c"/>
+    <circle cx="708" cy="90" r="7" fill="#FF6B6B"/><circle cx="730" cy="90" r="7" fill="#FFD166"/><circle cx="752" cy="90" r="7" fill="#C6FF3D"/>
+    <text x="1086" y="96" class="m" font-size="13" fill="#9aa" text-anchor="end">gloog://live</text>
+
+    <!-- heartbeat-ish CSI trace -->
+    <path class="pulse" d="M700 200 H780 l14 -8 l12 8 h40 l10 -46 l14 92 l12 -60 l10 14 h46 l14 -10 l12 10 h48 l10 -46 l14 92 l12 -60 l10 14 h60" fill="none" stroke="#C6FF3D" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M700 200 H1090" stroke="#C6FF3D" stroke-opacity=".15" stroke-width="2"/>
+
+    <!-- router -->
+    <g transform="translate(920 250)">
+      <rect x="-6" y="0" width="60" height="26" rx="6" fill="#FFFDF8" stroke="#111" stroke-width="3"/>
+      <path d="M6 0 V-26 M42 0 V-26" stroke="#FFFDF8" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="10" cy="13" r="3" fill="#C6FF3D"/><circle cx="22" cy="13" r="3" fill="#C6FF3D"/>
+    </g>
+    <g fill="none" stroke="#7CF5FF" stroke-width="4" stroke-linecap="round">
+      <path class="arc" d="M904 252 a40 40 0 0 1 80 0"/>
+      <path class="arc arc2" d="M890 252 a54 54 0 0 1 108 0"/>
+      <path class="arc arc3" d="M876 252 a68 68 0 0 1 136 0"/>
+    </g>
+
+    <!-- bed with person -->
+    <g transform="translate(712 268)">
+      <rect x="0" y="22" width="150" height="16" rx="5" fill="#B9A6FF" stroke="#FFFDF8" stroke-width="2"/>
+      <rect x="0" y="6" width="10" height="44" rx="3" fill="#FFFDF8"/>
+      <circle cx="30" cy="12" r="10" fill="#FFD9B8"/>
+      <rect x="42" y="6" width="100" height="18" rx="9" fill="#FF9BDB"/>
+    </g>
+    <path class="wave" d="M866 284 C900 260 900 300 934 276" fill="none" stroke="#FFD166" stroke-width="3"/>
+
+    <text x="1086" y="324" class="m" font-size="13" fill="#C6FF3D" text-anchor="end">● CSI 64 subcarriers</text>
+  </g>
+
+  <!-- y2k sparkles -->
+  <g fill="#111">
+    <path d="M598 70 l6 18 18 6 -18 6 -6 18 -6 -18 -18 -6 18 -6z"/>
+    <path d="M640 330 l4 12 12 4 -12 4 -4 12 -4 -12 -12 -4 12 -4z" fill="#FF9BDB" stroke="#111" stroke-width="2"/>
+    <path d="M612 270 l3 9 9 3 -9 3 -3 9 -3 -9 -9 -3 9 -3z"/>
+  </g>
+
+  <!-- sticker -->
+  <g transform="translate(1040 22) rotate(8)">
+    <rect width="124" height="40" rx="8" fill="#FFD166" stroke="#111" stroke-width="3"/>
+    <text x="62" y="26" class="h" font-size="15" text-anchor="middle" fill="#111">BY GENZIS</text>
+  </g>
+</svg>
