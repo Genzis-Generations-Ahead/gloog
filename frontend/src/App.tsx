@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
-import { Activity, AlertTriangle, BedDouble, Check, CheckCircle2, Clock, HeartPulse, Radio, RotateCcw, Settings2, Wifi, WifiOff, Wind, X } from 'lucide-react';
-import { api, useLive, type Point, type Settings, type Status, type Vitals } from './api';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Activity, AlertTriangle, Radar, BedDouble, Check, CheckCircle2, Clock, HeartPulse, Radio, RotateCcw, Settings2, Wifi, WifiOff, Wind, X } from 'lucide-react';
+import { api, onCsi, useLive, type Point, type Settings, type Status, type Vitals } from './api';
 
 const fmtAgo = (t: number) => {
   const s = Math.max(0, Date.now() / 1000 - t);
@@ -34,6 +34,7 @@ export default function App() {
         <main className="bento">
           <Hero s={status} v={v} />
           <Breathing v={v} />
+          <WifiVision v={v} />
           <Heart v={v} />
           <Stillness s={status} v={v} />
           <Alerts s={status} />
@@ -217,5 +218,50 @@ function SettingsDrawer({ s, onClose }: { s: Settings; onClose: () => void }) {
           onClick={() => { setSaving(true); api.saveSettings(f).then(onClose).finally(() => setSaving(false)); }}><Check size={18} />Save</button>
       </aside>
     </>
+  );
+}
+
+// diverging map: below its own average = violet, average = paper, above = pink
+const STOPS = [[107, 78, 255], [185, 166, 255], [244, 241, 234], [255, 155, 219], [255, 63, 164]];
+function cmap(x: number): string {
+  const p = Math.max(0, Math.min(0.9999, x)) * (STOPS.length - 1), i = Math.floor(p), f = p - i;
+  const a = STOPS[i], b = STOPS[i + 1];
+  return `rgb(${Math.round(a[0] + (b[0] - a[0]) * f)},${Math.round(a[1] + (b[1] - a[1]) * f)},${Math.round(a[2] + (b[2] - a[2]) * f)})`;
+}
+const COLS = 150;                                   // 30 s at 5 columns/s
+
+function WifiVision({ v }: { v: Vitals }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    const c = ref.current!;
+    const ctx = c.getContext('2d')!;
+    const fit = () => { const w = Math.round(c.getBoundingClientRect().width); if (w && c.width !== w) { c.width = w; ctx.fillStyle = cmap(0.5); ctx.fillRect(0, 0, c.width, c.height); } };
+    fit();
+    window.addEventListener('resize', fit);
+    let count = 0;
+    const off = onCsi((vals) => {
+      const W = c.width, H = c.height, cw = Math.max(1, Math.ceil(W / COLS)), rh = H / vals.length;
+      ctx.drawImage(c, cw, 0, W - cw, H, 0, 0, W - cw, H);          // scroll left
+      vals.forEach((x, k) => { ctx.fillStyle = cmap(x); ctx.fillRect(W - cw, H - (k + 1) * rh, cw, Math.ceil(rh)); });
+      if (++count % 5 === 0) setN(vals.length);
+    });
+    return () => { off(); window.removeEventListener('resize', fit); };
+  }, []);
+  const hint = v.presence === 'moving' ? 'Movement: streaks across every subcarrier'
+    : v.presence === 'still' ? 'Breathing: slow ripples every few seconds'
+    : v.presence === 'empty' ? 'Empty: flat, calm bands' : 'Waiting for packets';
+  return (
+    <section className="card c-vision" aria-label="Wi-Fi vision">
+      <div className="head">
+        <div className="label"><Radar size={16} />Wi-Fi vision · raw signal</div>
+        <div className="legend"><span className="chip lilac">below average</span><span className="chip pink">above average</span><span className="chip">{n || '–'} subcarriers</span></div>
+      </div>
+      <div className="vision">
+        <div className="vaxis" aria-hidden="true"><span>high</span><span>freq</span><span>low</span></div>
+        <canvas ref={ref} height={200} role="img" aria-label="Scrolling heatmap of every Wi-Fi subcarrier over the last 30 seconds" />
+      </div>
+      <div className="between-row"><span>30 s ago</span><span>{hint}</span><span>now</span></div>
+    </section>
   );
 }

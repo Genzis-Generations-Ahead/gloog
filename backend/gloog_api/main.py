@@ -100,10 +100,23 @@ class Hub:
 hub = Hub()
 
 
+async def vision_loop() -> None:
+    """Push a "Wi-Fi vision" column (one value per subcarrier) 5x a second."""
+    while True:
+        await asyncio.sleep(0.2)
+        if not hub.clients or not hub.rx:
+            continue
+        frame = await asyncio.to_thread(hub.rx.vision_frame)
+        if frame is not None:
+            await hub.broadcast(json.dumps({"type": "csi", "t": round(time.time(), 2), "v": frame}))
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     hub.start(asyncio.get_running_loop())
+    task = asyncio.create_task(vision_loop())
     yield
+    task.cancel()
     if hub.rx:
         hub.rx.stop()
 

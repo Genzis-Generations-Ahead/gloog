@@ -101,6 +101,8 @@ Full step-by-step setup, from a blank SD card: **[docs/README.md](docs/README.md
 | ✅ | Reference band with phone Wi-Fi setup and laptop auto-discovery |
 | ✅ | Signal engine v2: gain-jump (AGC) fix, breathing-harmonic removal, confidence-gated heart rate, empty-room calibration |
 | ✅ | Backend API + live dashboard + alerts (no movement, bed empty, breathing out of range, signal lost) |
+| ✅ | Wi-Fi vision: live waterfall of every subcarrier (breathing ripples, movement streaks) |
+| ⏳ | Position zones (left/right/sitting/out of bed) with 3–4 ESP32-S3 receivers around the bed |
 | ✅ | Hardware simulator + 31 automated tests |
 | ⏳ | Breathing and presence validated on the servo phantom (real hardware) |
 | ⏳ | Heart rate from CSI benchmarked against the reference band (real hardware) |

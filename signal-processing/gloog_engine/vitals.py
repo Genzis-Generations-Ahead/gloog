@@ -304,6 +304,19 @@ class VitalsEngine:
         self._band(v)
         return v
 
+    def vision_frame(self, recent: int = 20) -> list[float] | None:
+        """One column for the "Wi-Fi vision" waterfall: how far each subcarrier's
+        (gain-corrected) strength is from its own 30 s average, in -3..3 std, mapped
+        to 0..1. Uses the mean of the last `recent` packets (~0.2 s at 100 pkt/s)."""
+        if len(self.csi_a) < max(50, recent):
+            return None
+        A = np.stack(self.csi_a)
+        A = A[:, usable_subcarriers(A.shape[1])]
+        A = A / (A.mean(1, keepdims=True) + 1e-9)          # same gain-jump fix as the vitals
+        mu, sd = A.mean(0), A.std(0) + 1e-6
+        z = (A[-recent:].mean(0) - mu) / sd
+        return np.round(np.clip((z + 3) / 6, 0, 1), 2).tolist()
+
     def _band(self, v: Vitals) -> None:
         if len(self.band_t) < 300:
             v.band_status = "no_data"

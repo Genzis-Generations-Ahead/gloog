@@ -56,6 +56,10 @@ class Receiver:
         with self._lock:
             self.engine.calibrate(time.time(), seconds)
 
+    def vision_frame(self) -> list[float] | None:
+        with self._lock:
+            return self.engine.vision_frame()
+
     def stop(self) -> None:
         self._stop.set()
 

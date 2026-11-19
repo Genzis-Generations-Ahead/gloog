@@ -28,6 +28,11 @@ export const api = {
   saveSettings: (s: Partial<Settings>) => j<Settings>('/api/settings', { method: 'PUT', body: JSON.stringify(s) }),
 };
 
+/** Wi-Fi vision columns arrive 5x/s: delivered outside React state so they don't re-render the page. */
+type CsiFn = (v: number[], t: number) => void;
+const csiSubs = new Set<CsiFn>();
+export const onCsi = (fn: CsiFn) => { csiSubs.add(fn); return () => { csiSubs.delete(fn); }; };
+
 /** Live status over WebSocket, with auto-reconnect. */
 export function useLive() {
   const [status, setStatus] = useState<Status | null>(null);
@@ -42,7 +47,9 @@ export function useLive() {
       ws = new WebSocket(`${proto}://${location.host}/ws`);
       ws.onopen = () => { setConnected(true); retry.current = 0; api.history(30).then((h) => setHistory(h.points)).catch(() => {}); };
       ws.onmessage = (e) => {
-        const s: Status = JSON.parse(e.data);
+        const msg = JSON.parse(e.data);
+        if (msg.type === 'csi') { csiSubs.forEach((fn) => fn(msg.v, msg.t)); return; }
+        const s: Status = msg;
         setStatus(s);
         const v = s.vitals;
         setHistory((h) => {
