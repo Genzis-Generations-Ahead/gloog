@@ -69,9 +69,9 @@ gloog/
 │   ├── band/               reference band, phone Wi-Fi setup, auto-finds the laptop
 │   ├── phantom/            servo breathing phantom
 │   └── tests/              Wi-Fi, I2C and traffic test sketches
-├── signal-processing/      receiver: live presence, breathing, heart rate + CSV logs
-├── backend/                API (coming)
-├── frontend/               dashboard (coming)
+├── signal-processing/      gloog_engine (CSI decode, vitals, simulator) + console receiver
+├── backend/                FastAPI: live vitals, WebSocket, alerts, settings, serves the dashboard
+├── frontend/               live dashboard (React + Vite)
 └── docs/                   bring-up guide + design assets
 ```
 
@@ -81,9 +81,12 @@ gloog/
 # Raspberry Pi (after every boot)
 cd ~/gloog/firmware/pi && sudo ./start_csi.sh
 
-# Laptop
-cd signal-processing && pip install numpy scipy && python receiver.py
+# Laptop: dashboard on http://localhost:8000
+cd frontend && npm install && npm run build
+cd ../backend && pip install -r requirements.txt && python -m gloog_api
 ```
+
+No hardware yet? `cd signal-processing && python -m gloog_engine.simulator --scenario` fakes the Pi and the band.
 
 Band: power it on, join the **`Gloog-Band-Setup`** hotspot from your phone, pick the Wi-Fi. It finds the laptop by itself.
 
@@ -94,12 +97,16 @@ Full step-by-step setup, from a blank SD card: **[docs/README.md](docs/README.md
 | | Milestone |
 |:---:|---|
 | ✅ | CSI capture on Raspberry Pi 3B+ with Nexmon |
-| 🔧 | Live Pi → laptop CSI pipeline with on-the-fly vitals |
-| 🔧 | Reference band with phone Wi-Fi setup and laptop auto-discovery |
-| ⏳ | Breathing and presence validated on the servo phantom |
-| ⏳ | Heart rate from CSI, benchmarked against the reference band |
-| ⏳ | No-movement alerts and live dashboard |
-| ⏳ | Research publication |
+| ✅ | Live Pi → laptop CSI pipeline with on-the-fly vitals |
+| ✅ | Reference band with phone Wi-Fi setup and laptop auto-discovery |
+| ✅ | Signal engine v2: gain-jump (AGC) fix, breathing-harmonic removal, confidence-gated heart rate, empty-room calibration |
+| ✅ | Backend API + live dashboard + alerts (no movement, bed empty, breathing out of range, signal lost) |
+| ✅ | Hardware simulator + 31 automated tests |
+| ⏳ | Breathing and presence validated on the servo phantom (real hardware) |
+| ⏳ | Heart rate from CSI benchmarked against the reference band (real hardware) |
+| ⏳ | Research publications: review paper + phantom experiment paper |
+
+**Honest limits:** the Pi 3B+ has one antenna, so Gloog uses CSI amplitude only. Breathing is robust; Wi-Fi heart rate is experimental and is only shown when the engine is confident (it stays hidden when the heartbeat sits exactly on a breathing harmonic). The reference band is the ground truth.
 
 <br>
 

@@ -219,3 +219,7 @@ __marimo__/
 
 # Gloog capture logs
 signal-processing/logs/
+backend/logs/
+backend/settings.json
+frontend/node_modules/
+frontend/dist/

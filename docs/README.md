@@ -86,20 +86,28 @@ cd ~/gloog/firmware/pi && sudo ./start_csi.sh
 ```
 It prints `[gloog] NN CSI pkt/s` once the router is sending data. CSI is broadcast down the LAN cable, so any laptop on the cable receives it.
 
-**Laptop:**
+**Laptop, option 1 (dashboard, recommended):**
+```bash
+cd frontend && npm install && npm run build      # once, builds the dashboard
+cd ../backend && pip install -r requirements.txt
+python -m gloog_api                               # open http://localhost:8000
+```
+**Laptop, option 2 (console only):**
 ```bash
 cd signal-processing
-pip install numpy scipy
-python receiver.py
+pip install -r requirements.txt
+python receiver.py --calibrate                    # keep the bed EMPTY for the first 30 s
 ```
+Run one or the other, not both (they share the UDP ports).
 Allow Python through Windows Firewall, **Private and Public**. Put the laptop's Wi-Fi on **`gloog`** so the band can reach it.
 
-**Traffic:** CSI only comes from data frames, so the router must be busy. Flash `firmware/tests/traffic_gen` onto a XIAO, or just run the band (its stream counts).
+**Traffic:** CSI only comes from frames the router sends, so it must be busy at a steady rate. Flash `firmware/tests/traffic_gen` onto a spare XIAO (set your Wi-Fi password in it first): it gives a steady 100 packets/s. Heart rate needs 50+/s.
 
-You'll see lines like:
+Console lines look like:
 ```
-CSI 48pkt/s STILL motion=0.0013 BR=14.6/min HR=72bpm | BAND HR=71bpm
+CSI 100pkt/s STILL motion=1.6x BR=15.0/min HR=72bpm agc_fixed=2 | BAND HR=72bpm
 ```
+`motion` is relative to the empty room (calibrate once per room: dashboard button or `--calibrate`). `HR=–` means the Wi-Fi heart rate wasn't sure enough to show; that's by design.
 Logs land in `signal-processing/logs/` as CSV.
 
 ## D. Reference band
@@ -144,12 +152,23 @@ Serial Monitor (115200) shows `wifi=ok laptop=192.168.0.x sensor=ok sent=…`.
 | `Could not resolve raspberrypi.local` | Pi still booting, wait 2 min. Or `arp -a` → `ssh pi@192.168.137.x` |
 | Host key warning | `ssh-keygen -R raspberrypi.local` |
 | Pi shows no `CSI pkt/s` | Router idle: run traffic. Check channel and BSSID in `gloog.conf` |
-| Receiver says `CSI: no data` | Pi script not running, or firewall blocked Python (allow Private + Public) |
+| Dashboard says *No signal* / receiver says `CSI: no data` | Pi script not running, or firewall blocked Python (allow Private + Public) |
 | `BAND: no data` | Laptop Wi-Fi not on `gloog`, or band not set up yet |
 | XIAO RSSI around -90 | Antenna not clicked on |
 | No COM port for the XIAO | Charge-only USB cable, or use the B + R boot trick |
 | `scp` prints a usage message | Missing the source folder: `scp -r pi pi@raspberrypi.local:~/gloog` |
 | Commands error in PowerShell | You're on Windows, not the Pi. The Pi prompt is green `pi@raspberrypi` |
+
+| Presence wrong (says Resting in an empty bed) | Calibrate the empty room (dashboard → Signal → Calibrate) |
+| Heart rate always `–` | Packet rate under 50/s (run traffic_gen), or the person is moving |
+
+## No hardware? Use the simulator
+
+```bash
+cd signal-processing
+python -m gloog_engine.simulator --scenario    # fake Pi + band: empty -> still -> moving, loops
+```
+Then run the backend (or `receiver.py`) as usual. Tests: `python -m pytest -q` in `signal-processing/` and `backend/`.
 
 ## Checklist
 
@@ -161,3 +180,5 @@ Serial Monitor (115200) shows `wifi=ok laptop=192.168.0.x sensor=ok sent=…`.
 - [ ] Band set up from phone, `BAND HR` shows in receiver
 - [ ] Empty room / walking / lying still captures recorded
 - [ ] Breathing phantom runs at set bpm, receiver BR matches
+- [ ] Dashboard shows live vitals on http://localhost:8000
+- [ ] Phantom test: 12 / 18 / 24 bpm on 2 routers, logs saved for the paper
